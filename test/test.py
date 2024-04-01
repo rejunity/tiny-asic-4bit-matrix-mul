@@ -7,11 +7,9 @@ from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles
 from utils import *
 
-# PACK_5_WEIGHTS = False
-PACK_5_WEIGHTS = True
 COMPUTE_SLICES = 1 # will be overriden by Verilog module parameter, don't change here!
 
-WEIGHTS_PER_BYTE     = 5 if PACK_5_WEIGHTS else 4
+WEIGHTS_PER_BYTE     = 2
 COMPUTE_BLOCK_WIDTH  = 1               *COMPUTE_SLICES
 COMPUTE_BLOCK_HEIGHT = WEIGHTS_PER_BYTE*COMPUTE_SLICES
 
@@ -23,7 +21,7 @@ async def setup(dut):
     # Configure global variables according to Verilog module parameters
     global COMPUTE_SLICES, WEIGHTS_PER_BYTE, COMPUTE_BLOCK_WIDTH, COMPUTE_BLOCK_HEIGHT
     COMPUTE_SLICES       = int(dut.COMPUTE_SLICES.value)
-    WEIGHTS_PER_BYTE     = 5 if PACK_5_WEIGHTS else 4
+    WEIGHTS_PER_BYTE     = 2
     COMPUTE_BLOCK_WIDTH  = 1               *COMPUTE_SLICES
     COMPUTE_BLOCK_HEIGHT = WEIGHTS_PER_BYTE*COMPUTE_SLICES
 
@@ -39,7 +37,7 @@ async def test_basics(dut):
     # Reset
     dut._log.info("Reset")
     dut.ena.value = 1
-    dut.ui_in.value = (1*3**4 + 2*3**3 + 1*3**2 + 0*3**1 + 2*3**0) if PACK_5_WEIGHTS else 0b01_11_01_00
+    dut.ui_in.value = pack_weights([1, -1], weights_per_byte=WEIGHTS_PER_BYTE)
     dut.uio_in.value = 0
     dut.rst_n.value = 0
     await ClockCycles(dut.clk, 4)
@@ -47,7 +45,8 @@ async def test_basics(dut):
 
     # Compute
     dut._log.info("Compute")
-    dut.ui_in.value = (1*3**4 + 2*3**3 + 1*3**2 + 0*3**1 + 2*3**0) if PACK_5_WEIGHTS else 0b01_11_01_00
+    dut.ui_in.value = pack_weights([1, -1], weights_per_byte=WEIGHTS_PER_BYTE)
+    print(dut.ui_in.value)
     dut.uio_in.value = 127
     
     K = 12 if COMPUTE_SLICES < 5 else COMPUTE_SLICES * 3 # K must be divisble by COMPUTE_SLICES
@@ -68,20 +67,7 @@ async def test_basics(dut):
         await ClockCycles(dut.clk, 1)
         assert s8_to_i32(dut.uo_out.value) == OUT(-1 * 127 * K//COMPUTE_SLICES)
 
-    for _ in range(COMPUTE_SLICES):
-        await ClockCycles(dut.clk, 1)
-        assert s8_to_i32(dut.uo_out.value) == OUT( 1 * 127 * K//COMPUTE_SLICES)
-
-    for _ in range(COMPUTE_SLICES):
-        await ClockCycles(dut.clk, 1)
-        assert s8_to_i32(dut.uo_out.value) == OUT( 0 * 127 * K//COMPUTE_SLICES)
-
-    if PACK_5_WEIGHTS:
-        for _ in range(COMPUTE_SLICES):
-            await ClockCycles(dut.clk, 1)
-            assert s8_to_i32(dut.uo_out.value) == OUT( -1 * 127 * K//COMPUTE_SLICES)
-
-async def gemm(dut, weights, inputs, weights_per_byte = 4, compute_block_width = 1, compute_block_height = 4, compute_slices = 1, verbose=False):
+async def gemm(dut, weights, inputs, weights_per_byte = 2, compute_block_width = 1, compute_block_height = 2, compute_slices = 1, verbose=False):
 
     W = compute_block_width
     H = compute_block_height
@@ -221,7 +207,7 @@ async def test_gemm_small(dut):
     N = 1  *COMPUTE_BLOCK_HEIGHT
     K = 16
     M = 1  *COMPUTE_BLOCK_WIDTH
-    weights  = random_matrix(  -1,   1, (N, K))
+    weights  = random_matrix(  -7,   7, (N, K))
     inputs   = random_matrix(-127, 127, (K, M))
     expected = matrix_mul(weights, inputs)
 
@@ -234,7 +220,7 @@ async def test_gemm_large(dut):
     N = 4  *COMPUTE_BLOCK_HEIGHT
     K = 128
     M = 3  *COMPUTE_BLOCK_WIDTH
-    weights  = random_matrix(  -1,   1, (N, K))
+    weights  = random_matrix(  -7,   7, (N, K))
     inputs   = random_matrix(-127, 127, (K, M))
     expected = matrix_mul(weights, inputs)
 
