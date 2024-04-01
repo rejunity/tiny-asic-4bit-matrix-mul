@@ -9,7 +9,9 @@ assert s8_to_i32(0x7f) == 127
 assert s8_to_i32(0x80) == -128
 assert s8_to_i32(0xff) == -1
 
-def pack_weights(weights, weights_per_byte=4):
+def pack_weights(weights, weights_per_byte=-1):
+    if weights_per_byte == -1:
+        weights_per_byte = len(weights)
     packed = 0
     if weights_per_byte == 5:
         for i in weights:
@@ -31,21 +33,21 @@ def pack_weights(weights, weights_per_byte=4):
 assert pack_weights([ 0, 0,  0, 0]) == 0
 assert pack_weights([ 1, 0, -1, 0]) == 0b01_00_11_00
 assert pack_weights([-1, 1, -1, 1]) == 0b11_01_11_01
-assert pack_weights([-1, 1, -1, 1]*4) == 0b11011101_11011101_11011101_11011101
-assert pack_weights([ 0, 0,  0, 0,  0], weights_per_byte=5) == 0
-assert pack_weights([ 1, 0, -1, 0,  0], weights_per_byte=5) <= 255
-assert pack_weights([ 1, 0, -1, 0,  0], weights_per_byte=5) == 1*3**4 + 0*3**3 + 2*3**2 + 0*3**1 + 0*3**0
-assert pack_weights([-1, 1, -1, 1, -1], weights_per_byte=5) <= 255
-assert pack_weights([-1, 1, -1, 1, -1], weights_per_byte=5) == 2*3**4 + 1*3**3 + 2*3**2 + 1*3**1 + 2*3**0
-assert pack_weights([ 0,  0], weights_per_byte=2) == 0
-assert pack_weights([ 1, -1], weights_per_byte=2) == 0b0001_1111
-assert pack_weights([ 7, -8], weights_per_byte=2) == 0b0111_1000
+assert pack_weights([-1, 1, -1, 1]*4, weights_per_byte=4) == 0b11011101_11011101_11011101_11011101
+assert pack_weights([ 0, 0,  0, 0,  0]) == 0
+assert pack_weights([ 1, 0, -1, 0,  0]) <= 255
+assert pack_weights([ 1, 0, -1, 0,  0]) == 1*3**4 + 0*3**3 + 2*3**2 + 0*3**1 + 0*3**0
+assert pack_weights([-1, 1, -1, 1, -1]) <= 255
+assert pack_weights([-1, 1, -1, 1, -1]) == 2*3**4 + 1*3**3 + 2*3**2 + 1*3**1 + 2*3**0
+assert pack_weights([ 0,  0]) == 0
+assert pack_weights([ 1, -1]) == 0b0001_1111
+assert pack_weights([ 7, -8]) == 0b0111_1000
 
 def pack_weights_as_u8_array(weights, weights_per_byte=4):
     return [pack_weights(weights[i:i+weights_per_byte], weights_per_byte) for i in range(0, len(weights), weights_per_byte)]
 assert pack_weights_as_u8_array([-1, 1, -1, 1, -1]*4, weights_per_byte=5) == [2*3**4 + 1*3**3 + 2*3**2 + 1*3**1 + 2*3**0]*4
 
-def unpack_weights(packed, weights_per_byte=4):
+def unpack_weights(packed, weights_per_byte):
     weights = []
     if weights_per_byte == 5:
         while packed > 0:
@@ -70,13 +72,13 @@ def unpack_weights(packed, weights_per_byte=4):
     else:
         assert "Unknown weights_per_byte" == weights_per_byte
     return weights[::-1]
-assert unpack_weights(pack_weights([ 1, 0, -1, 0])) == [ 1, 0, -1, 0]
-assert unpack_weights(pack_weights([-1, 1, -1, 1])) == [-1, 1, -1, 1]
-assert unpack_weights(pack_weights([ 1, 0, -1, 0,  0], weights_per_byte=5), weights_per_byte=5) == [ 1, 0, -1, 0,  0]
-assert unpack_weights(pack_weights([-1, 1, -1, 1, -1], weights_per_byte=5), weights_per_byte=5) == [-1, 1, -1, 1, -1]
-assert unpack_weights(pack_weights([ 1, 0], weights_per_byte=2), weights_per_byte=2) == [ 1, 0]
-assert unpack_weights(pack_weights([-1, 1], weights_per_byte=2), weights_per_byte=2) == [-1, 1]
-assert unpack_weights(pack_weights([ 7,-8], weights_per_byte=2), weights_per_byte=2) == [7, -8]
+assert unpack_weights(pack_weights([ 1, 0, -1, 0]), weights_per_byte=4) == [ 1, 0, -1, 0]
+assert unpack_weights(pack_weights([-1, 1, -1, 1]), weights_per_byte=4) == [-1, 1, -1, 1]
+assert unpack_weights(pack_weights([ 1, 0, -1, 0,  0]), weights_per_byte=5) == [ 1, 0, -1, 0,  0]
+assert unpack_weights(pack_weights([-1, 1, -1, 1, -1]), weights_per_byte=5) == [-1, 1, -1, 1, -1]
+assert unpack_weights(pack_weights([ 1, 0]), weights_per_byte=2) == [ 1, 0]
+assert unpack_weights(pack_weights([-1, 1]), weights_per_byte=2) == [-1, 1]
+assert unpack_weights(pack_weights([ 7,-8]), weights_per_byte=2) == [7, -8]
 
 def random_matrix(lo, hi, dims):
     if isinstance(dims, (int)):
