@@ -6,7 +6,7 @@ SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
 CONFIG_SOURCES = config.v
-PROJECT_SOURCES = 1_58bit_mul.v
+PROJECT_SOURCES = i4_mul_i8.v
 
 ifneq ($(GATES),yes)
 
