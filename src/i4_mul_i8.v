@@ -45,7 +45,7 @@ module tt_um_rejunity_i4_mul_i8 (
         .clk(clk),
         .reset(reset),
 
-        .in_left(ui_in),
+        .in_left({ui_in[3:0], ui_in[7:4]}),
         .in_top(uio_in),
 
         .restart_inputs(initiate_read_out),
@@ -164,7 +164,8 @@ module systolic_array #(
     generate
     for (j = 0; j < W; j = j + 1)
         for (i = 0; i < H; i = i + 1) begin : mac
-            wire signed [3:0] arg_0 = $signed(arg_left_curr[(H-1-i)*4 +: 4]);
+            // wire signed [3:0] arg_0 = $signed(arg_left_curr[(H-1-i)*4 +: 4]);
+            wire signed [3:0] arg_0 = $signed(arg_left_curr[i*4 +: 4]);
             wire signed [7:0] arg_1 = $signed(arg_top_curr [7:0]);
             if (j == 0) begin : compute
                 assign accumulators_next[i*W+W-1] =
