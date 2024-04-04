@@ -26,7 +26,8 @@ module tb ();
     parameter integer COMPUTE_SLICES = `COMPUTE_SLICES;
 
     // Replace tt_um_example with your module name:
-    tt_um_rejunity_i4_mul_i8 user_project (
+    // tt_um_rejunity_i4_mul_i8 user_project (
+    tt_um_rejunity_fp4_mul_i8 user_project (
         // Include power ports for the Gate Level test:
         `ifdef GL_TEST
             .VPWR(1'b1),

@@ -16,7 +16,8 @@ project:
   # List your project's source files here. Source files must be in ./src and you must list each source file separately, one per line:
   source_files:
     - "config.v"
-    - "i4_mul_i8.v"
+    - "fp4_mul_i8.v"
+    # - "i4_mul_i8.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 pinout:

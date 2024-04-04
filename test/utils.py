@@ -9,6 +9,31 @@ assert s8_to_i32(0x7f) == 127
 assert s8_to_i32(0x80) == -128
 assert s8_to_i32(0xff) == -1
 
+# needs fixing
+# def fp4e2m1_to_float(fp4):
+#     e2   =        fp4 & 0b0110
+#     m1   = [1, 3/4][fp4 & 0b0001] if e2 > 0 else 0
+#     sign = -1 if (fp4 & 0b1000)       > 0 else 1
+#     # return sign * 2**(e2-1) * m1
+#     return e2
+# print([fp4e2m1_to_float(fp4) for fp4 in range(16)])
+# assert [fp4e2m1_to_float(fp4) for fp4 in range(16)] == [0, 3/4, 1, 1.5, 2, 3, 4, 6, -0, -3/4, -1, -1.5, -2, -3, -4, -6]
+
+def fp4e3m0_to_float(fp4):
+    e3   =        fp4 & 0b0111
+    m0   =  1 if  e3            > 0 else 0
+    sign = -1 if (fp4 & 0b1000) > 0 else 1
+    return sign * 2**(e3-3) * m0
+# print ([fp4e3m0_to_float(fp4) for fp4 in range(16)])
+assert [fp4e3m0_to_float(fp4) for fp4 in range(16)] == [0, 1/4, 1/2, 1, 2, 4, 8, 16, -0, -1/4, -1/2, -1, -2, -4, -8, -16]
+
+# https://arxiv.org/pdf/2305.14314.pdf
+def nf4_to_float(nf4):
+    return [-1.0, -0.6961928009986877, -0.5250730514526367, -0.39491748809814453, \
+            -0.28444138169288635, -0.18477343022823334, -0.09105003625154495, 0.0, \
+            0.07958029955625534, 0.16093020141124725, 0.24611230194568634, 0.33791524171829224, \
+            0.44070982933044434, 0.5626170039176941, 0.7229568362236023, 1.0][nf4]
+
 def pack_weights(weights, weights_per_byte=-1):
     if weights_per_byte == -1:
         weights_per_byte = len(weights)
@@ -147,6 +172,9 @@ def matrix_mul(a, b):
 assert matrix_mul([[1, 2], [3, 4]], [[1, 2], [3, 4]]) == [[7, 10], [15, 22]]
 assert matrix_mul([[-1, 1, 1, -1, 0, 1], [0, 1, 1, -1, 1, -1], [0, 0, 1, -1, -1, 1], [0, 1, 1, 0, 0, 1], [-1, -1, 1, -1, 1, 0]],
                    [[127], [127], [127], [127], [127], [127]]) == [[127], [127], [0], [381], [-127]]
+
+def matrix_apply(matrix, func):
+    return [[func(x) for x in row] for row in matrix]
 
 # A = random_matrix(-1, 1, (16, 10))
 # B = random_matrix(-127, 127, (10, 32))
