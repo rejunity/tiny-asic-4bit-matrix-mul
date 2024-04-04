@@ -7,7 +7,10 @@
 // * https://dennisforbes.ca/articles/understanding-floating-point-numbers.html
 // * https://github.com/oprecomp/FloatX
 // * https://aclanthology.org/2023.emnlp-main.39.pdf LLM-FP4: 4-Bit Floating-Point Quantized Transformers
+// * https://papers.nips.cc/paper/2020/file/13b919438259814cd5be8cb45877d577-Paper.pdf 
 // * https://arxiv.org/pdf/2302.08007.pdf With Shared Microexponents, A Little Shifting Goes a Long Way
+// * https://arxiv.org/pdf/2305.14314.pdf QLORA: Efficient Finetuning of Quantized LLMs
+//   - table of NF4 values
 // * FP4 - e3m0, e2m1
 // * NF4
 
@@ -17,9 +20,8 @@ function signed [14:0] mul_fp4_i8;
     input        [3:0] fp4;
     input signed [7:0] i8;
     begin
-        mul_fp4_i8 = (i8 * (fp4[3] ? -1: 1)) << fp4[2:0];
-        // mul_fp4_i8 = (fp4[3] * i8) << fp4[2:0];
-        // mul_fp4_i8 = $signed(fp4) * i8;
+        mul_fp4_i8 = (|fp4[2:0] == 0) ? 0 :
+                     (i8 << fp4[2:0]) * (fp4[3] ? -1: 1);
     end
 endfunction
 

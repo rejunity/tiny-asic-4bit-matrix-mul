@@ -14,9 +14,8 @@ COMPUTE_BLOCK_WIDTH  = 1               *COMPUTE_SLICES
 COMPUTE_BLOCK_HEIGHT = WEIGHTS_PER_BYTE*COMPUTE_SLICES
 
 def OUT(v):
-    # return int(round((v*8) >> 8))
-    # return int(round(v/256))
-    return int(v) >> 8
+    return int(v // 256)
+    # return int(v) >> 8
     # return s8_to_i32(v & 255)
 
 89782
@@ -166,6 +165,19 @@ async def reset_run_and_validate_gemm(dut, weights, inputs, expected, verbose=Fa
         assert OUT(v) == r
 
 @cocotb.test()
+async def test_gemm_zero_weights(dut):
+    random.seed(3)
+
+    N = 1  *COMPUTE_BLOCK_HEIGHT
+    K = 4
+    M = 1  *COMPUTE_BLOCK_WIDTH
+    weights  = const_matrix(   0, (N, K))
+    inputs   = const_matrix( 127, (K, M))
+    expected = matrix_mul(matrix_apply(weights, fp4e3m0_to_float), inputs)
+
+    await reset_run_and_validate_gemm(dut, weights, inputs, expected)
+
+@cocotb.test()
 async def test_gemm_positive_weights(dut):
     random.seed(3)
 
@@ -218,7 +230,7 @@ async def test_gemm_small(dut):
 
     await reset_run_and_validate_gemm(dut, weights, inputs, expected, verbose=True)
 
-# @cocotb.test()
+@cocotb.test()
 async def test_gemm_large(dut):
     random.seed(3)
 
