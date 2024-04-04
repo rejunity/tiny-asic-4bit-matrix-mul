@@ -14,7 +14,7 @@ jobs:
           submodules: recursive
 
       - name: Build GDS
-        uses: TinyTapeout/tt-gds-action@tt06
+        uses: MichaelBell/tt-gds-action@tt06-no-pin-swaps 
   
   precheck:
     needs: gds
