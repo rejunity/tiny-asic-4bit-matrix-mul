@@ -6,15 +6,16 @@
 // refs:
 // * https://dennisforbes.ca/articles/understanding-floating-point-numbers.html
 // * https://github.com/oprecomp/FloatX
-// * https://aclanthology.org/2023.emnlp-main.39.pdf LLM-FP4: 4-Bit Floating-Point Quantized Transformers
 // * https://papers.nips.cc/paper/2020/file/13b919438259814cd5be8cb45877d577-Paper.pdf 
 // * https://arxiv.org/pdf/2302.08007.pdf With Shared Microexponents, A Little Shifting Goes a Long Way
 // * https://arxiv.org/pdf/2305.14314.pdf QLORA: Efficient Finetuning of Quantized LLMs
 //   - table of NF4 values
+// * https://aclanthology.org/2023.emnlp-main.39.pdf LLM-FP4: 4-Bit Floating-Point Quantized Transformers
+//   - measures the area size of the INT4, INT6, E2M1 adders and multipliers (TSMC 40nm)
+//   - code: https://github.com/nbasyl/LLM-FP4, but Verilog of area size measurement is not incuded :/
 // * FP4 - e3m0, e2m1
 // * NF4
 
-// `define INT4     1
 // `define FP4_E3M0 1
 function signed [14:0] mul_fp4_i8;
     input        [3:0] fp4;
@@ -173,16 +174,15 @@ module systolic_array #(
             wire              sign  =         arg_0[3];
             wire        [2:0] exp   =         arg_0[2:0];
 
-            // wire signed [13:0] addend =       arg_1 << (exp - 1);
-            wire signed [14:0] addend_ =       arg_1 << exp;
-            wire signed [13:0] addend =        addend_[14:1];
+            wire signed [13:0] addend =       arg_1 << (exp - 1);
             if (j == 0) begin : compute
                 assign accumulators_next[i*W+W-1] =
                      zero  ? accumulators[i*W+j] + 0 :
                     (sign  ? accumulators[i*W+j] - addend:
                              accumulators[i*W+j] + addend);
+
                 // assign accumulators_next[i*W+W-1] =
-                //               accumulators[i*W+j] + mul_fp4_i8(arg_0, arg_1);
+                //             accumulators[i*W+j]   + mul_fp4_i8(arg_0, arg_1);
             end else begin : shift
                 assign accumulators_next[i*W+j-1] =
                               accumulators[i*W+j];
@@ -195,7 +195,7 @@ module systolic_array #(
         end
     endgenerate
 
+    assign out = out_queue[0] >> (8 + 2); // 1 is subtracted from exponent, line 178
     // assign out = out_queue[0] >> 8;
     // assign out = out_queue[0][7:0];
-    assign out = out_queue[0] >> (8 + 2);
 endmodule
