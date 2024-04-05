@@ -167,15 +167,20 @@ module systolic_array #(
     for (j = 0; j < W; j = j + 1)
         for (i = 0; i < H; i = i + 1) begin : mac
             wire        [3:0] arg_0 =         arg_left_curr[i*4 +: 4];
-            wire              zero  =       (|arg_0[2:0]) == 0;
+            wire signed [7:0] arg_1 = $signed(arg_top_curr [7:0]);
+            
+            wire              zero  =         arg_0[2:0] == 0;
             wire              sign  =         arg_0[3];
             wire        [2:0] exp   =         arg_0[2:0];
-            wire signed [7:0] arg_1 = $signed(arg_top_curr [7:0]);
+
+            wire signed [13:0] addend =       arg_1 << (exp - 1);
+            // wire signed [14:0] addend_ =       arg_1 << exp;
+            // wire signed [13:0] addend =        addend_[14:1];
             if (j == 0) begin : compute
                 assign accumulators_next[i*W+W-1] =
                      zero  ? accumulators[i*W+j] + 0 :
-                    (sign  ? accumulators[i*W+j] - (arg_1 << exp):
-                             accumulators[i*W+j] + (arg_1 << exp));
+                    (sign  ? accumulators[i*W+j] - addend:
+                             accumulators[i*W+j] + addend);
                 // assign accumulators_next[i*W+W-1] =
                 //               accumulators[i*W+j] + mul_fp4_i8(arg_0, arg_1);
             end else begin : shift
@@ -192,5 +197,5 @@ module systolic_array #(
 
     // assign out = out_queue[0] >> 8;
     // assign out = out_queue[0][7:0];
-    assign out = out_queue[0] >> (8 + 3);
+    assign out = out_queue[0] >> (8 + 2);
 endmodule
