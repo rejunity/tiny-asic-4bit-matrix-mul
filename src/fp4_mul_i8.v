@@ -173,9 +173,9 @@ module systolic_array #(
             wire              sign  =         arg_0[3];
             wire        [2:0] exp   =         arg_0[2:0];
 
-            wire signed [13:0] addend =       arg_1 << (exp - 1);
-            // wire signed [14:0] addend_ =       arg_1 << exp;
-            // wire signed [13:0] addend =        addend_[14:1];
+            // wire signed [13:0] addend =       arg_1 << (exp - 1);
+            wire signed [14:0] addend_ =       arg_1 << exp;
+            wire signed [13:0] addend =        addend_[14:1];
             if (j == 0) begin : compute
                 assign accumulators_next[i*W+W-1] =
                      zero  ? accumulators[i*W+j] + 0 :
