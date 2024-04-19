@@ -1,6 +1,6 @@
 # Tiny Tapeout project information
 project:
-  title:        "4-bit accelerator"      # Project title
+  title:        "4-bit x 8-bit matrix multiplier"      # Project title
   author:       "ReJ aka Renaldas Zioma"
   discord:      "rzioma"
   description:  "4-bit x 8-bit matrix multiplier block"
